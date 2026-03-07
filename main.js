@@ -102,7 +102,7 @@ scene.add(light);
 // --- 核心：遍历图片并构建环绕墙 ---
 // 配置参数
 const MAX_INDEX = 24;                // 最大索引，从1开始尝试到24 (可根据实际图片数量调整)
-const EXTENSIONS = ['jpg', 'png'];    // 尝试的扩展名顺序，优先jpg
+const EXTENSIONS = ['jpg', 'png','jpeg'];    // 尝试的扩展名顺序，优先jpg
 const RADIUS = 9;                     // 环绕半径
 const BASE_WIDTH = 2.2;                // 每张图片的基础宽度（将根据宽高比调整高度）
 
