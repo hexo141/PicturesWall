@@ -2,51 +2,28 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>照片墙</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>PicturesWall | Three.js</title>
+    <link rel="stylesheet" href="./style.css" />
+
+    <!-- NProgress：文件/图片扫描进度条 -->
+    <link rel="stylesheet" href="https://unpkg.com/nprogress@0.2.0/nprogress.css" />
+    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
 </head>
 <body>
-    <!-- 黑玻璃遮罩 -->
-    <div class="overlay"></div>
+    <!-- 极简信息，不干扰视觉 (可以移除，保留作为调试) -->
+    <div class="info">双击图片查看原图 | Github:hexo141 </div>
 
-    <!-- 主容器 -->
-    <div class="container">
-        <!-- 加载指示器 -->
-        <div class="loading" id="loading"></div>
+    <!-- 引入 Three.js 核心库和轨道控制器 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
 
-        <!-- 卡片容器 -->
-        <div class="cards-container" id="cardsContainer"></div>
-
-        <!-- 导航箭头 -->
-        <div class="nav-arrow left" id="prevBtn">
-            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-        </div>
-        <div class="nav-arrow right" id="nextBtn">
-            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        </div>
-    </div>
-
-    <!-- 原图查看器 -->
-    <div class="image-viewer" id="imageViewer">
-        <span class="close-btn" id="closeViewer">&times;</span>
-        <img src="" alt="原图" id="viewerImage">
-    </div>
-
-    <!-- 搜索按钮 -->
-    <div class="search-btn" id="searchBtn">
-        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    </div>
-
-    <!-- 搜索框 -->
-    <div class="search-box" id="searchBox">
-        <input type="text" id="searchInput" placeholder="输入图片编号（如：205）">
-        <button id="searchSubmit">搜索</button>
-    </div>
-
-    <!-- 提示框 -->
-    <div class="toast" id="toast"></div>
-
-    <script src="script.js"></script>
+    <script type="module" src="./main.js"></script>
 </body>
 </html>
