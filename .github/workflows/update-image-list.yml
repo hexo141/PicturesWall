@@ -13,11 +13,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        # 移除 persist-credentials，使用默认认证
+        with:
+          persist-credentials: false   # 关闭自动认证，后续手动设置
 
       - name: Generate image list
         run: |
           if [ -d "image" ]; then
+            # 查找 image/ 下的图片文件（支持多种格式）
             find image -maxdepth 1 -type f \( \
               -iname "*.jpg" -o \
               -iname "*.jpeg" -o \
@@ -42,9 +44,9 @@ jobs:
           git add PicturesList.txt
           if git diff --staged --quiet; then
             echo "No changes to PicturesList.txt"
-          else
-            git commit -m "Update image list"
-            git push
+            exit 0
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git commit -m "Update image list"
+          # 关键步骤：将 GITHUB_TOKEN 嵌入远程 URL
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push
