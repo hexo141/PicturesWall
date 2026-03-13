@@ -5,24 +5,19 @@ on:
     branches:
       - main
     paths:
-      - 'image/**'          # 仅当 image/ 目录中的文件变动时触发
+      - 'image/**'
 
 jobs:
   generate-list:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write       # 明确授予写入权限
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # 使用 token 进行检出
+        # 移除 persist-credentials，使用默认认证
 
       - name: Generate image list
         run: |
           if [ -d "image" ]; then
-            # 查找 image/ 下的图片文件（不递归子目录），提取文件名，排序后写入
-            # 支持的格式：jpg, jpeg, png, gif, bmp, webp, svg, tiff, ico, avif
             find image -maxdepth 1 -type f \( \
               -iname "*.jpg" -o \
               -iname "*.jpeg" -o \
@@ -37,7 +32,6 @@ jobs:
               -iname "*.avif" \
             \) -printf "%f\n" | sort > PicturesList.txt
           else
-            # 若 image 目录不存在，则清空列表文件
             > PicturesList.txt
           fi
 
@@ -52,3 +46,5 @@ jobs:
             git commit -m "Update image list"
             git push
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
