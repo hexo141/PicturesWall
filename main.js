@@ -96,7 +96,92 @@ const light = new THREE.DirectionalLight(0xffffff, 0.5);
 light.position.set(1, 2, 1);
 scene.add(light);
 
+<<<<<<< HEAD
 // --- 图片墙相关：容器 + 动画列表 ---
+=======
+// --- 核心：遍历图片并构建环绕墙 ---
+// 配置参数
+const MAX_INDEX = 24;                // 最大索引，从1开始尝试到24 (可根据实际图片数量调整)
+const EXTENSIONS = ['jpg', 'png','jpeg'];    // 尝试的扩展名顺序，优先jpg
+const RADIUS = 9;                     // 环绕半径
+const BASE_WIDTH = 2.2;                // 每张图片的基础宽度（将根据宽高比调整高度）
+
+// 图片容器：存放加载成功的信息
+let imagesInfo = [];
+
+// 工具函数：加载单张图片返回Promise
+function loadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`加载失败: ${url}`));
+        img.src = url;
+        // 跨域属性（如果图片在同域，不需要；如果不同域，根据需要设置，这里假设同域）
+        // img.crossOrigin = 'Anonymous'; // 如果图片在别的域且需要CORS，可以取消注释
+    });
+}
+
+// 异步探测所有图片：遍历索引，尝试扩展名，返回成功图片的信息数组（按索引排序）
+async function discoverImages() {
+    console.log('开始探测图片...');
+    NProgress.start();
+
+    const results = [];
+    let consecutiveMisses = 0;
+
+    for (let i = 1; i <= MAX_INDEX; i++) {
+        // 如果连续 15 个索引都没有图片，则认为后续也没有，提前停止扫描
+        if (consecutiveMisses >= 15) {
+            console.log('连续 15 个索引均未找到图片，提前停止扫描。');
+            break;
+        }
+
+        const urlBase = `image/${i}`;
+        let found = null;
+
+        for (const ext of EXTENSIONS) {
+            const url = `${urlBase}.${ext}`;
+            try {
+                const img = await loadImage(url);
+                console.log(`✅ 找到图片: ${url} (${img.width}x${img.height})`);
+                found = { index: i, url, img, width: img.width, height: img.height };
+                break;
+            } catch (e) {
+                // 尝试下一个扩展名
+            }
+        }
+
+        if (found) {
+            consecutiveMisses = 0;
+            results.push(found);
+            addImageToWall(found);
+        } else {
+            consecutiveMisses += 1;
+            console.warn(`❌ 索引 ${i} 无有效图片 (jpg/png 均尝试失败)`);
+        }
+
+        // 更新界面中的扫描状态
+        if (infoEl) {
+            const pct = Math.round((i / MAX_INDEX) * 100);
+            infoEl.textContent = `扫描中：${i}/${MAX_INDEX} (${pct}%) - 已加载 ${results.length} 张图片`;
+        }
+
+        // 更新进度条（即便提前结束，也能显示已扫描进度）
+        NProgress.set(i / MAX_INDEX);
+    }
+
+    NProgress.done();
+
+    if (infoEl) {
+        infoEl.textContent = `双击图片查看原图 | Github:hexo141`;
+    }
+
+    console.log(`共探测到 ${results.length} 张图片`, results.map(v => v.url));
+    return results;
+}
+
+// --- 图片墙相关：增量添加 + 入场动画 ---
+>>>>>>> f83dbaa70e4135eba7944aedcaad1a783de14d48
 const wallGroup = new THREE.Group();
 scene.add(wallGroup);
 
