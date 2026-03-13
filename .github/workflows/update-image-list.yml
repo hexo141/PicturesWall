@@ -4,49 +4,57 @@ on:
   push:
     branches:
       - main
+      - master
     paths:
       - 'image/**'
 
 jobs:
-  generate-list:
+  update-image-list:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          persist-credentials: false   # 关闭自动认证，后续手动设置
+          fetch-depth: 0
 
-      - name: Generate image list
+      - name: Generate image file list
         run: |
+          # 创建或清空文件
+          > image_list.txt
+          
+          # 查找 image 目录下的所有图片文件，只取文件名
           if [ -d "image" ]; then
-            # 查找 image/ 下的图片文件（支持多种格式）
-            find image -maxdepth 1 -type f \( \
-              -iname "*.jpg" -o \
-              -iname "*.jpeg" -o \
-              -iname "*.png" -o \
-              -iname "*.gif" -o \
-              -iname "*.bmp" -o \
-              -iname "*.webp" -o \
-              -iname "*.svg" -o \
-              -iname "*.tiff" -o \
-              -iname "*.tif" -o \
-              -iname "*.ico" -o \
-              -iname "*.avif" \
-            \) -printf "%f\n" | sort > PicturesList.txt
+            find image -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.bmp" -o -iname "*.svg" \) | \
+            while read -r filepath; do
+              basename "$filepath" >> image_list.txt
+            done
+            
+            # 排序并去重
+            sort -u image_list.txt -o image_list.txt
           else
-            > PicturesList.txt
+            echo "image 目录不存在"
           fi
+          
+          # 显示内容
+          echo "=== 图片列表 ==="
+          cat image_list.txt
 
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add PicturesList.txt
-          if git diff --staged --quiet; then
-            echo "No changes to PicturesList.txt"
-            exit 0
+          
+          if [ -s image_list.txt ]; then
+            git add image_list.txt
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: Update Pictures List [skip ci]"
+              git push
+            else
+              echo "文件无变化，跳过提交"
+            fi
+          else
+            echo "图片列表为空"
           fi
-          git commit -m "Update image list"
-          # 关键步骤：将 GITHUB_TOKEN 嵌入远程 URL
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git push
