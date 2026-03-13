@@ -19,27 +19,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate image file list
         run: |
-          # 创建或清空文件
+          # Create or clear the output file
           > image_list.txt
           
-          # 查找 image 目录下的所有图片文件，只取文件名
+          # Find all image files under image/ directory, extract basename only
           if [ -d "image" ]; then
             find image -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.bmp" -o -iname "*.svg" \) | \
             while read -r filepath; do
               basename "$filepath" >> image_list.txt
             done
             
-            # 排序并去重
+            # Sort and remove duplicates
             sort -u image_list.txt -o image_list.txt
           else
-            echo "image 目录不存在"
+            echo "image directory not found"
           fi
           
-          # 显示内容
-          echo "=== 图片列表 ==="
+          # Display content for debugging
+          echo "=== Image List ==="
           cat image_list.txt
 
       - name: Commit and push if changed
@@ -50,11 +51,11 @@ jobs:
           if [ -s image_list.txt ]; then
             git add image_list.txt
             if ! git diff --staged --quiet; then
-              git commit -m "chore: Update Pictures List [skip ci]"
+              git commit -m "chore: update image file list [skip ci]"
               git push
             else
-              echo "文件无变化，跳过提交"
+              echo "No changes detected, skipping commit"
             fi
           else
-            echo "图片列表为空"
+            echo "Image list is empty"
           fi
