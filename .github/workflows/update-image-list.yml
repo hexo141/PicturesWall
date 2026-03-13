@@ -19,35 +19,45 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # ✅ Critical: Use GITHUB_TOKEN for write access
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate image file list
         run: |
-          > image_list.txt
+          # Generate new list to a temp file first
+          TEMP_LIST=$(mktemp)
           
           if [ -d "image" ]; then
             find image -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.bmp" -o -iname "*.svg" \) | \
-            xargs -n1 basename | sort -u > image_list.txt
+            xargs -n1 basename | sort -u > "$TEMP_LIST"
+          else
+            touch "$TEMP_LIST"
           fi
           
-          echo "=== Generated Image List ==="
+          # Compare with existing file (if exists)
+          if [ -f "image_list.txt" ] && diff -q "$TEMP_LIST" image_list.txt > /dev/null 2>&1; then
+            echo "✅ No changes detected in image list"
+            echo "CHANGES_DETECTED=false" >> $GITHUB_ENV
+          else
+            echo "🔄 Changes detected, updating image_list.txt"
+            cp "$TEMP_LIST" image_list.txt
+            echo "CHANGES_DETECTED=true" >> $GITHUB_ENV
+          fi
+          
+          # Cleanup
+          rm -f "$TEMP_LIST"
+          
+          # Debug output
+          echo "=== Current Image List ==="
           cat image_list.txt
 
-      - name: Commit and push changes
+      - name: Commit and push if changed
+        if: env.CHANGES_DETECTED == 'true'
         run: |
-          # Configure git user
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          # Only proceed if there are changes
-          if ! git diff --quiet image_list.txt; then
-            git add image_list.txt
-            git commit -m "chore: update image list [skip ci]"
-            
-            # ✅ Critical: Push using token-authenticated URL
-            echo "Pushing changes..."
-            git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
-          else
-            echo "✅ No changes to commit"
-          fi
+          git add image_list.txt
+          git commit -m "chore: update image list [skip ci]"
+          
+          # Push with authenticated URL
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
