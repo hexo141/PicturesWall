@@ -10,11 +10,13 @@ on:
 jobs:
   generate-list:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write       # 明确授予写入权限
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: false   # 使用 GITHUB_TOKEN 进行后续提交
+          token: ${{ secrets.GITHUB_TOKEN }}  # 使用 token 进行检出
 
       - name: Generate image list
         run: |
@@ -50,5 +52,3 @@ jobs:
             git commit -m "Update image list"
             git push
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
