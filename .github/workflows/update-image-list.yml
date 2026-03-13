@@ -34,12 +34,12 @@ jobs:
           fi
           
           # Compare with existing file (if exists)
-          if [ -f "image_list.txt" ] && diff -q "$TEMP_LIST" image_list.txt > /dev/null 2>&1; then
+          if [ -f "PicturesList.txt" ] && diff -q "$TEMP_LIST" PicturesList.txt > /dev/null 2>&1; then
             echo "✅ No changes detected in image list"
             echo "CHANGES_DETECTED=false" >> $GITHUB_ENV
           else
-            echo "🔄 Changes detected, updating image_list.txt"
-            cp "$TEMP_LIST" image_list.txt
+            echo "🔄 Changes detected, updating PicturesList.txt"
+            cp "$TEMP_LIST" PicturesList.txt
             echo "CHANGES_DETECTED=true" >> $GITHUB_ENV
           fi
           
@@ -48,7 +48,7 @@ jobs:
           
           # Debug output
           echo "=== Current Image List ==="
-          cat image_list.txt
+          cat PicturesList.txt
 
       - name: Commit and push if changed
         if: env.CHANGES_DETECTED == 'true'
@@ -56,7 +56,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          git add image_list.txt
+          git add PicturesList.txt
           git commit -m "chore: update image list [skip ci]"
           
           # Push with authenticated URL
